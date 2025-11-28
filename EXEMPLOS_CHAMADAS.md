@@ -1,6 +1,6 @@
 # Exemplos de Chamadas do Gateway API
 
-**URL Base**: `http://localhost:8083`
+**URL Base**: `http://localhost:8080`
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### 1.1 Criar Usuário
 ```bash
-curl -X POST 'http://localhost:8083/api/users/create' \
+curl -X POST 'http://localhost:8080/api/users/create' \
   -H 'Content-Type: application/json' \
   -d '{
     "name": "João Silva",
@@ -31,7 +31,7 @@ curl -X POST 'http://localhost:8083/api/users/create' \
 
 ### 1.2 Fazer Login (Obter Token JWT)
 ```bash
-TOKEN=$(curl -s -X POST 'http://localhost:8083/api/users/login' \
+TOKEN=$(curl -s -X POST 'http://localhost:8080/api/users/login' \
   -H 'Content-Type: application/json' \
   -d '{
     "email": "joao@example.com",
@@ -50,7 +50,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6Ikpvw6NvIFNpbHZhIiw
 
 ### 1.3 Atualizar Usuário (Requer Autenticação)
 ```bash
-curl -X PATCH 'http://localhost:8083/api/users/updateUser' \
+curl -X PATCH 'http://localhost:8080/api/users/updateUser' \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
@@ -84,7 +84,7 @@ curl -X PATCH 'http://localhost:8083/api/users/updateUser' \
 
 ### 2.1 Criar Despesa/Receita
 ```bash
-curl -X POST 'http://localhost:8083/api/gastos/despesa/create' \
+curl -X POST 'http://localhost:8080/api/gastos/despesa/create' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TOKEN" \
@@ -118,7 +118,7 @@ curl -X POST 'http://localhost:8083/api/gastos/despesa/create' \
 
 ### 2.2 Listar Despesas com Filtros
 ```bash
-curl -X GET 'http://localhost:8083/api/gastos/despesa/listDespesas?startDate=2025-11-01&endDate=2025-11-30' \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-11-01&endDate=2025-11-30' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -153,7 +153,7 @@ curl -X GET 'http://localhost:8083/api/gastos/despesa/listDespesas?startDate=202
 
 ### 2.3 Obter Sumário de Despesas (Total por Tipo)
 ```bash
-curl -X GET 'http://localhost:8083/api/gastos/despesa/sumario?startDate=2025-11-01&endDate=2025-11-30' \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/sumario?startDate=2025-11-01&endDate=2025-11-30' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -175,7 +175,7 @@ curl -X GET 'http://localhost:8083/api/gastos/despesa/sumario?startDate=2025-11-
 
 ### 2.4 Obter Sumário por Tag
 ```bash
-curl -X GET 'http://localhost:8083/api/gastos/despesa/sumarioTag?tag=Alimentação&startDate=2025-11-01&endDate=2025-11-30' \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/sumarioTag?tag=Alimentação&startDate=2025-11-01&endDate=2025-11-30' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -198,7 +198,7 @@ curl -X GET 'http://localhost:8083/api/gastos/despesa/sumarioTag?tag=Alimentaç�
 
 ### 2.5 Listar Sumário por Tags
 ```bash
-curl -X GET 'http://localhost:8083/api/gastos/despesa/listTagSum?startDate=2025-11-01&endDate=2025-11-30' \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/listTagSum?startDate=2025-11-01&endDate=2025-11-30' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -232,7 +232,7 @@ curl -X GET 'http://localhost:8083/api/gastos/despesa/listTagSum?startDate=2025-
 
 ### 2.6 Atualizar Despesa
 ```bash
-curl -X PATCH 'http://localhost:8083/api/gastos/despesa/update?id=1' \
+curl -X PATCH 'http://localhost:8080/api/gastos/despesa/update?id=1' \
   -H 'Content-Type: application/json' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN" \
@@ -267,7 +267,7 @@ curl -X PATCH 'http://localhost:8083/api/gastos/despesa/update?id=1' \
 
 ### 2.7 Deletar Despesa
 ```bash
-curl -X DELETE 'http://localhost:8083/api/gastos/despesa/delete?id=1' \
+curl -X DELETE 'http://localhost:8080/api/gastos/despesa/delete?id=1' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -286,7 +286,7 @@ curl -X DELETE 'http://localhost:8083/api/gastos/despesa/delete?id=1' \
 
 ### 2.8 Testar Autenticação
 ```bash
-curl -X GET 'http://localhost:8083/api/gastos/test-auth' \
+curl -X GET 'http://localhost:8080/api/gastos/test-auth' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -310,7 +310,7 @@ curl -X GET 'http://localhost:8083/api/gastos/test-auth' \
 
 # 1. Criar usuário
 echo "=== Criando usuário ==="
-curl -X POST 'http://localhost:8083/api/users/create' \
+curl -X POST 'http://localhost:8080/api/users/create' \
   -H 'Content-Type: application/json' \
   -d '{
     "name": "Teste User",
@@ -319,7 +319,7 @@ curl -X POST 'http://localhost:8083/api/users/create' \
   }'
 
 echo -e "\n\n=== Fazendo login ==="
-TOKEN=$(curl -s -X POST 'http://localhost:8083/api/users/login' \
+TOKEN=$(curl -s -X POST 'http://localhost:8080/api/users/login' \
   -H 'Content-Type: application/json' \
   -d '{
     "email": "teste@example.com",
@@ -329,7 +329,7 @@ TOKEN=$(curl -s -X POST 'http://localhost:8083/api/users/login' \
 echo "Token obtido: $TOKEN"
 
 echo -e "\n\n=== Criando despesa ==="
-curl -X POST 'http://localhost:8083/api/gastos/despesa/create' \
+curl -X POST 'http://localhost:8080/api/gastos/despesa/create' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TOKEN" \
@@ -341,12 +341,12 @@ curl -X POST 'http://localhost:8083/api/gastos/despesa/create' \
   }'
 
 echo -e "\n\n=== Listando despesas ==="
-curl -X GET 'http://localhost:8083/api/gastos/despesa/listDespesas?startDate=2025-11-01&endDate=2025-11-30' \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-11-01&endDate=2025-11-30' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 
 echo -e "\n\n=== Obter sumário ==="
-curl -X GET 'http://localhost:8083/api/gastos/despesa/sumario?startDate=2025-11-01&endDate=2025-11-30' \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/sumario?startDate=2025-11-01&endDate=2025-11-30' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -386,7 +386,7 @@ curl -X GET 'http://localhost:8083/api/gastos/despesa/sumario?startDate=2025-11-
                  ▼
         ┌────────────────────┐
         │  API GATEWAY       │
-        │  (porta 8083)      │
+        │  (porta 8080)      │
         └─┬──────────────┬───┘
           │              │
           ▼              ▼
