@@ -1,7 +1,0 @@
-run/gastos/model/TagSum.class
-run/gastos/model/Despesa.class
-run/gastos/model/Despesa$operations.class
-run/gastos/GastosResource$CreateDespesaRequest.class
-run/gastos/GastosResource$DeleteDespesaRequest.class
-run/gastos/GastosResource.class
-run/gastos/GastosResource$UpdateDespesaRequest.class
