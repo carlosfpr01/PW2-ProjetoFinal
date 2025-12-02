@@ -5,36 +5,95 @@ Sistema de microserviços para gerenciamento de usuários e controle de gastos.
 ## 🏗️ Arquitetura
 
 ```
-                    ┌─────────────────┐
-                    │   API Gateway   │
-                    │   (porta 8080)  │
-                    └────────┬────────┘
-                             │
-                    ┌────────┴────────┐
-                    │                 │
-            ┌───────▼──────┐  ┌──────▼───────┐
-            │ Users Service│  │Gastos Service│
-            │  (porta 8082)│  │ (porta 8081) │
-            └───────┬──────┘  └──────┬───────┘
-                    │                │
-                    └────────┬───────┘
-                             ▼
-                      ┌─────────────┐
-                      │    MySQL    │
-                      │ (porta 3306)│
-                      └─────────────┘
+┌─────────────────────────────────────────┐
+│        Client (curl/postman/browser)    │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼ HTTP Requests
+        ┌────────────────────┐
+        │  API GATEWAY       │
+        │  (porta 8080)      │
+        │                    │
+        │  • Roteamento      │
+        │  • Validação JWT   │
+        │  • CORS            │
+        └─┬──────────────┬───┘
+          │              │
+          │ REST         │ REST
+          │ Client       │ Client
+          ▼              ▼
+    ┌─────────────┐  ┌──────────────┐
+    │ USERS       │  │ GASTOS       │
+    │ (porta 8082)│  │ (porta 8081) │
+    │             │  │              │
+    │ • Login     │  │ • Despesas   │
+    │ • Registro  │  │ • Receitas   │
+    │ • JWT Gen   │  │ • Relatórios │
+    │ • BCrypt    │  │ • Sumários   │
+    └──────┬──────┘  └──────┬───────┘
+           │                │
+           │ Reactive       │ Reactive
+           │ Panache        │ Panache
+           ▼                ▼
+    ┌──────────────┐ ┌──────────────┐
+    │  MySQL 8.0   │ │  MySQL 8.0   │
+    │ (porta 3308) │ │ (porta 3307) │
+    │              │ │              │
+    │ DB: users_db │ │ DB: gastos_db│
+    │ Table: users │ │ Table:       │
+    │              │ │  despesas    │
+    └──────────────┘ └──────────────┘
 ```
 
 ## 📦 Componentes
 
-- **API Gateway**: Ponto único de entrada, roteamento e validação JWT
-- **Users Service**: Autenticação, registro e gerenciamento de usuários
-- **Gastos Service**: CRUD de despesas e relatórios financeiros
-- **MySQL**: Banco de dados compartilhado
+- **API Gateway** (porta 8080): 
+  - Ponto único de entrada para todas as requisições
+  - Roteamento inteligente para microserviços
+  - Validação de tokens JWT
+  - Configuração CORS
+  - MicroProfile REST Client para comunicação inter-serviços
+
+- **Users Service** (porta 8082):
+  - Autenticação com JWT (RS256)
+  - Registro de novos usuários
+  - Criptografia de senhas com BCrypt
+  - CRUD de usuários
+  - Campo `password` protegido com `@JsonIgnore`
+  - Parâmetros recebidos via **HTTP Headers**
+
+- **Gastos Service** (porta 8081):
+  - CRUD de despesas e receitas
+  - Relatórios financeiros por período
+  - Sumários por tag/categoria
+  - Extração de userId do JWT
+  - Proteção de rotas com `@RolesAllowed("user")`
+  - Parâmetros recebidos via **Query Params**
+  - Banco de dados próprio (MySQL porta 3307)
+
+- **Bancos de Dados MySQL 8.0** (isolamento por microserviço):
+  - **Users DB** (porta 3308 em dev): Tabela `users`
+  - **Gastos DB** (porta 3307 em dev): Tabela `despesas`
+  - Acesso reativo via Hibernate Reactive Panache
+  - Cada microserviço gerencia seu próprio schema
+  - **Dev Services**: Quarkus cria containers MySQL automaticamente em modo dev
 
 ## 🚀 Início Rápido
 
-### Opção 1: Docker Compose (Recomendado)
+### Opção 1: Script Automatizado (Recomendado)
+
+```bash
+# Dê permissão aos scripts (apenas primeira vez)
+chmod +x start.sh stop.sh
+
+# Inicia todos os serviços (MySQL + Users + Gastos + Gateway)
+./start.sh
+
+# Para parar todos os serviços
+./stop.sh
+```
+
+### Opção 2: Docker Compose
 
 ```bash
 # Inicia todos os serviços
@@ -46,15 +105,7 @@ docker-compose up --build
 # - Graylog: http://localhost:9000
 ```
 
-### Opção 2: Desenvolvimento Local
-
-```bash
-# Dê permissão ao script
-chmod +x start-services.sh
-
-# Execute o script
-./start-services.sh
-```
+### Opção 3: Manual (para debug)
 
 Ou manualmente:
 
@@ -79,37 +130,56 @@ cd gateway && ./mvnw quarkus:dev
 ### Autenticação
 
 ```bash
-# Criar usuário
-curl -X POST http://localhost:8080/api/users/create \
-  -H "Content-Type: application/json" \
-  -d '{"name":"João Silva","email":"joao@example.com","password":"senha123"}'
+# Criar usuário (parâmetros via Headers)
+curl -X POST 'http://localhost:8080/api/users/create' \
+  -H 'name: João Silva' \
+  -H 'email: joao@example.com' \
+  -H 'password: senha123'
 
 # Login (retorna JWT token)
-curl -X POST http://localhost:8080/api/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"joao@example.com","password":"senha123"}'
+TOKEN=$(curl -s -X POST 'http://localhost:8080/api/users/login' \
+  -H 'email: joao@example.com' \
+  -H 'password: senha123')
+
+echo "Token: $TOKEN"
 ```
 
 ### Gerenciar Despesas (requer token)
 
 ```bash
-# Salvar o token em uma variável
-TOKEN="seu_token_aqui"
-
-# Criar despesa
-curl -X POST http://localhost:8080/api/gastos/despesa/create \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"amount":150.50,"operation":"D","date":"2025-11-28","tag":"Alimentação"}'
+# Criar despesa (parâmetros via Query Params)
+curl -X POST 'http://localhost:8080/api/gastos/despesa/create?amount=150.50&operation=D&tag=Alimentação&date=2025-11-28' \
+  -H "Authorization: Bearer $TOKEN"
 
 # Listar despesas
-curl -X GET "http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-01-01&endDate=2025-12-31" \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-01-01&endDate=2025-12-31' \
   -H "Authorization: Bearer $TOKEN"
 
 # Resumo de gastos
-curl -X GET "http://localhost:8080/api/gastos/despesa/sumario?startDate=2025-01-01&endDate=2025-12-31" \
+curl -X GET 'http://localhost:8080/api/gastos/despesa/sumario?startDate=2025-01-01&endDate=2025-12-31' \
+  -H "Authorization: Bearer $TOKEN"
+
+# Sumário por tag
+curl -X GET 'http://localhost:8080/api/gastos/despesa/sumarioTag?tag=Alimentação&startDate=2025-01-01&endDate=2025-12-31' \
   -H "Authorization: Bearer $TOKEN"
 ```
+
+## 📝 Formato das Requisições
+
+### Users Service (via Gateway)
+- **Parâmetros**: Sempre via **HTTP Headers**
+- **Exemplo**: `-H 'name: João' -H 'email: joao@example.com' -H 'password: senha123'`
+- **❌ NÃO use**: JSON body (`-d '{...}'`)
+
+### Gastos Service (via Gateway)
+- **Parâmetros de dados**: Via **Query Params** (`?amount=100&operation=D&tag=Alimentação&date=2025-11-28`)
+- **Autenticação**: Via Header `Authorization: Bearer <TOKEN>`
+- **❌ NÃO use**: JSON body para os parâmetros de negócio
+
+### Respostas
+- O campo **password** nunca é retornado (protegido com `@JsonIgnore`)
+- Todas as rotas de Gastos requerem autenticação JWT
+- Token JWT expira em **1 hora** (3600 segundos)
 
 ## 🔐 Segurança
 
@@ -117,6 +187,8 @@ curl -X GET "http://localhost:8080/api/gastos/despesa/sumario?startDate=2025-01-
 - **Validação**: Gateway valida tokens antes de rotear
 - **CORS**: Configurado para desenvolvimento
 - **HTTPS**: Suporte SSL/TLS configurado
+- **Password Hashing**: BCrypt para senhas de usuários
+- **Role-Based Access**: `@RolesAllowed("user")` em endpoints protegidos
 
 ## 📊 Observabilidade
 
@@ -141,22 +213,82 @@ curl http://localhost:8080/health/ready
 ### Estrutura de Diretórios
 
 ```
-.
-├── gateway/          # API Gateway (porta 8080)
-├── users/            # Serviço de usuários (porta 8082)
-├── gastos/           # Serviço de gastos (porta 8081)
-├── docker-compose.yml
-└── start-services.sh
+PW2 Projeto Final/
+├── gateway/                    # API Gateway (porta 8080)
+│   ├── src/main/java/br/com/gateway/
+│   │   ├── GastosGatewayResource.java    # Proxy para Gastos
+│   │   ├── UsersGatewayResource.java     # Proxy para Users
+│   │   └── client/
+│   │       ├── GastosClient.java         # REST Client
+│   │       └── UsersClient.java          # REST Client
+│   └── src/main/resources/
+│       └── application.properties        # Config do Gateway
+│
+├── users/                      # Serviço de Usuários (porta 8082)
+│   ├── src/main/java/dev/ifrs/
+│   │   ├── UsersResource.java            # Endpoints REST
+│   │   └── model/
+│   │       └── User.java                 # Entidade User (Panache)
+│   └── src/main/resources/
+│       └── application.properties        # Config Users
+│
+├── gastos/                     # Serviço de Gastos (porta 8081)
+│   ├── src/main/java/run/gastos/
+│   │   ├── GastosResource.java           # Endpoints REST
+│   │   └── model/
+│   │       ├── Despesa.java              # Entidade Despesa
+│   │       └── TagSum.java               # DTO para sumários
+│   └── src/main/resources/
+│       └── application.properties        # Config Gastos
+│
+├── start.sh                    # Script para iniciar todos os serviços
+├── stop.sh                     # Script para parar todos os serviços
+├── EXEMPLOS_CHAMADAS.md        # Exemplos completos da API
+├── INICIAR.md                  # Guia de inicialização
+├── TESTE.md                    # Casos de teste
+└── README.md                   # Este arquivo
 ```
+
+### Fluxo de Comunicação
+
+1. **Cliente → Gateway** (porta 8080)
+   - Headers: `name`, `email`, `password` (Users)
+   - Query Params: `amount`, `operation`, `tag`, `date` (Gastos)
+   - Header: `Authorization: Bearer <TOKEN>` (autenticação)
+
+2. **Gateway → Microserviços**
+   - MicroProfile REST Client (reativo)
+   - Configuração via `application.properties`
+   - Tratamento de erros com `forward()`
+
+3. **Microserviços → MySQL**
+   - Hibernate Reactive Panache
+   - Reactive Queries com `Uni<T>`
+   - Transações gerenciadas automaticamente
 
 ### Tecnologias
 
-- **Framework**: Quarkus 3.29.4
-- **Java**: 21
-- **Banco**: MySQL 8.0
-- **Comunicação**: REST Client Reactive
-- **Segurança**: SmallRye JWT
-- **Observabilidade**: OpenTelemetry, Jaeger, Graylog
+- **Framework**: Quarkus 3.29.4 (Supersonic Subatomic Java)
+- **Java**: 21 (LTS)
+- **Banco de Dados**: MySQL 8.0
+- **ORM**: Hibernate Reactive Panache
+- **Comunicação**: MicroProfile REST Client Reactive
+- **Segurança**: 
+  - SmallRye JWT (RS256)
+  - BCrypt para hashing de senhas
+  - `@RolesAllowed` para autorização
+- **Reactive**: Mutiny (`Uni<T>`, `Multi<T>`)
+- **Containerização**: Docker, Docker Compose
+- **Observabilidade**: OpenTelemetry, Jaeger, Graylog (opcional)
+
+### Padrões de Projeto Utilizados
+
+- **API Gateway Pattern**: Ponto único de entrada
+- **Microservices Architecture**: Serviços independentes e escaláveis
+- **Repository Pattern**: Panache Active Record
+- **DTO Pattern**: `TagSum` para agregações
+- **Reactive Programming**: Mutiny Uni para operações assíncronas
+- **REST Client Pattern**: Comunicação inter-serviços
 
 ### Hot Reload
 
@@ -169,30 +301,38 @@ Quarkus suporta hot reload em modo dev. Apenas salve o arquivo e veja as mudanç
 | API Gateway | 8080 | http://localhost:8080 |
 | Gastos Service | 8081 | http://localhost:8081 |
 | Users Service | 8082 | http://localhost:8082 |
-| MySQL | 3306 | localhost:3306 |
+| MySQL Users DB | 3308 | localhost:3308 (dev) |
+| MySQL Gastos DB | 3307 | localhost:3307 (dev) |
 | Jaeger UI | 16686 | http://localhost:16686 |
 | Graylog | 9000 | http://localhost:9000 |
 
 ## 🧪 Testes
 
 ```bash
-# Testar health do gateway
-curl http://localhost:8080/api/health
+# Testar health checks
+curl http://localhost:8080/q/health
+curl http://localhost:8082/q/health  # Users direto
+curl http://localhost:8081/q/health  # Gastos direto
 
 # Criar usuário de teste
-curl -X POST http://localhost:8080/api/users/create \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Teste","email":"teste@test.com","password":"123456"}'
+curl -X POST 'http://localhost:8080/api/users/create' \
+  -H 'name: Teste User' \
+  -H 'email: teste@test.com' \
+  -H 'password: 123456'
 
 # Fazer login
-TOKEN=$(curl -X POST http://localhost:8080/api/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"teste@test.com","password":"123456"}' -s)
+TOKEN=$(curl -s -X POST 'http://localhost:8080/api/users/login' \
+  -H 'email: teste@test.com' \
+  -H 'password: 123456')
 
 echo "Token: $TOKEN"
 
-# Testar autenticação
-curl -X GET http://localhost:8080/api/gastos/test-auth \
+# Criar despesa de teste
+curl -X POST 'http://localhost:8080/api/gastos/despesa/create?amount=100.00&operation=D&tag=Teste&date=2025-11-29' \
+  -H "Authorization: Bearer $TOKEN"
+
+# Listar despesas
+curl -X GET 'http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-11-01&endDate=2025-11-30' \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -223,6 +363,9 @@ docker system prune -f
 
 ## 📚 Documentação Adicional
 
+- **[EXEMPLOS_CHAMADAS.md](EXEMPLOS_CHAMADAS.md)** - Exemplos completos de todas as rotas da API
+- **[INICIAR.md](INICIAR.md)** - Guia detalhado de inicialização dos serviços
+- **[TESTE.md](TESTE.md)** - Casos de teste e validações
 - [Gateway README](gateway/README.md) - Documentação detalhada do API Gateway
 - [Quarkus Guides](https://quarkus.io/guides/) - Guias oficiais do Quarkus
 

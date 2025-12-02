@@ -1,18 +1,155 @@
-# code-with-quarkus
+# Gastos Service - Microserviço de Despesas e Receitas
+
+Microserviço responsável pelo gerenciamento de despesas e receitas dos usuários.
+
+## 🎯 Funcionalidades
+
+- Criar despesas e receitas
+- Listar despesas por período
+- Obter sumário financeiro (total despesas, receitas e saldo)
+- Sumário por tag/categoria
+- Atualizar e deletar despesas
+- Autenticação via JWT
+
+## 🚀 Executar em Desenvolvimento
+
+```shell script
+./mvnw quarkus:dev -Dquarkus.http.port=8081
+```
+
+O serviço estará disponível em: <http://localhost:8081>
+
+Dev UI disponível em: <http://localhost:8081/q/dev/>
+
+## 📡 Endpoints
+
+**IMPORTANTE**: 
+- Todos os parâmetros de dados são enviados via **Query Params** (não JSON body)
+- Autenticação via Header `Authorization: Bearer <TOKEN>`
+- Todas as rotas requerem autenticação JWT
+
+### Criar Despesa/Receita
+```bash
+curl -X POST 'http://localhost:8081/despesa/create?amount=150.00&operation=D&tag=Alimentação&date=2025-11-29' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Parâmetros:**
+- `amount`: Valor (number)
+- `operation`: "D" para Despesa, "C" para Crédito/Receita
+- `tag`: Categoria (string)
+- `date`: Data no formato YYYY-MM-DD
+
+### Listar Despesas
+```bash
+curl -X GET 'http://localhost:8081/despesa/listDespesas?startDate=2025-11-01&endDate=2025-11-30' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Obter Sumário Financeiro
+```bash
+curl -X GET 'http://localhost:8081/despesa/sumario?startDate=2025-11-01&endDate=2025-11-30' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Retorna:**
+```json
+{
+  "totalDespesas": 1500.00,
+  "totalReceitas": 5000.00,
+  "saldo": 3500.00
+}
+```
+
+### Sumário por Tag
+```bash
+curl -X GET 'http://localhost:8081/despesa/sumarioTag?tag=Alimentação&startDate=2025-11-01&endDate=2025-11-30' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Listar Sumário de Todas as Tags
+```bash
+curl -X GET 'http://localhost:8081/despesa/listTagSum?startDate=2025-11-01&endDate=2025-11-30' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Atualizar Despesa
+```bash
+curl -X PATCH 'http://localhost:8081/despesa/update?id=1&amount=200.00&tag=Alimentação Premium' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Deletar Despesa
+```bash
+curl -X DELETE 'http://localhost:8081/despesa/delete?id=1' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## 🔐 Segurança
+
+- **JWT**: Extração automática do userId do token
+- **@RolesAllowed("user")**: Proteção de endpoints
+- **SecurityIdentity**: Injeção de contexto de segurança
+
+## 🗄️ Banco de Dados
+
+- MySQL 8.0
+- Hibernate Reactive com Panache
+- Tabela: `despesas`
+
+### Configuração MySQL
+```properties
+quarkus.datasource.db-kind=mysql
+quarkus.datasource.username=pw2
+quarkus.datasource.password=pw2
+quarkus.datasource.reactive.url=mysql://localhost:3306/pw2
+```
+
+## 📦 Empacotar e Executar
+
+Gerar o JAR:
+```shell script
+./mvnw package
+```
+
+Executar:
+```shell script
+java -jar target/quarkus-app/quarkus-run.jar
+```
+
+## 🐳 Docker
+
+Build da imagem:
+```shell script
+./mvnw package
+docker build -f src/main/docker/Dockerfile.jvm -t gastos-service .
+```
+
+Executar container:
+```shell script
+docker run -i --rm -p 8081:8081 gastos-service
+```
+
+## 🧪 Health Check
+
+```bash
+curl http://localhost:8081/q/health
+```
+
+## 📚 Tecnologias
+
+- Quarkus 3.29.4
+- Java 21
+- MySQL 8.0 (Reactive)
+- Hibernate Reactive Panache
+- SmallRye JWT
+- HQL (Hibernate Query Language)
+
+---
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
-
-## Running the application in dev mode
-
-You can run your application in dev mode that enables live coding using:
-
-```shell script
-./mvnw quarkus:dev
-```
-
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
 
 ## Packaging and running the application
 

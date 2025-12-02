@@ -1,6 +1,6 @@
 dev/ifrs/UsersResource$CreateUserRequest.class
 dev/ifrs/UsersResource.class
 dev/ifrs/UsersResource$DeleteUserRequest.class
-dev/ifrs/UsersResource$LoginRequest.class
 dev/ifrs/UsersResource$UpdateUserRequest.class
+dev/ifrs/UsersResource$LoginRequest.class
 dev/ifrs/model/User.class

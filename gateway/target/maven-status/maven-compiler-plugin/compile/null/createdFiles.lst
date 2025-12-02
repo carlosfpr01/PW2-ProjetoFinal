@@ -1,0 +1,5 @@
+br/com/gateway/client/GastosClient.class
+br/com/gateway/client/UsersClient.class
+br/com/gateway/HealthResource.class
+br/com/gateway/GastosGatewayResource.class
+br/com/gateway/UsersGatewayResource.class

@@ -101,49 +101,72 @@ DELETE /api/gastos/despesa/delete           - Deletar despesa
 
 ### Health Check
 ```
-GET    /api/health              - Status do Gateway
-GET    /health                  - Health check completo
-GET    /health/live            - Liveness probe
-GET    /health/ready           - Readiness probe
+GET    /q/health               - Health check completo
+GET    /q/health/live          - Liveness probe
+GET    /q/health/ready         - Readiness probe
 ```
 
 ## 🔐 Autenticação
 
 1. **Obter token:**
 ```bash
-curl -X POST http://localhost:8080/api/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"senha123"}'
+TOKEN=$(curl -s -X POST 'http://localhost:8080/api/users/login' \
+  -H 'email: user@example.com' \
+  -H 'password: senha123')
+
+echo "Token: $TOKEN"
 ```
 
 2. **Usar token nas requisições:**
 ```bash
-curl -X GET http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-01-01&endDate=2025-12-31 \
-  -H "Authorization: Bearer SEU_TOKEN_AQUI"
+curl -X GET 'http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-01-01&endDate=2025-12-31' \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## 🧪 Testar
 
 ```bash
 # Health check
-curl http://localhost:8080/api/health
+curl http://localhost:8080/q/health
 
-# Criar usuário
-curl -X POST http://localhost:8080/api/users/create \
-  -H "Content-Type: application/json" \
-  -d '{"name":"João Silva","email":"joao@example.com","password":"senha123"}'
+# Criar usuário (parâmetros via Headers)
+curl -X POST 'http://localhost:8080/api/users/create' \
+  -H 'name: João Silva' \
+  -H 'email: joao@example.com' \
+  -H 'password: senha123'
 
 # Login
-TOKEN=$(curl -X POST http://localhost:8080/api/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"joao@example.com","password":"senha123"}' -s)
+TOKEN=$(curl -s -X POST 'http://localhost:8080/api/users/login' \
+  -H 'email: joao@example.com' \
+  -H 'password: senha123')
 
-# Criar despesa
-curl -X POST http://localhost:8080/api/gastos/despesa/create \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"amount":150.50,"operation":"D","date":"2025-11-28","tag":"Alimentação"}'
+echo "Token: $TOKEN"
+
+# Criar despesa (parâmetros via Query Params)
+curl -X POST 'http://localhost:8080/api/gastos/despesa/create?amount=150.50&operation=D&tag=Alimentação&date=2025-11-28' \
+  -H "Authorization: Bearer $TOKEN"
+
+# Listar despesas
+curl -X GET 'http://localhost:8080/api/gastos/despesa/listDespesas?startDate=2025-11-01&endDate=2025-11-30' \
+  -H "Authorization: Bearer $TOKEN"
 ```
+
+## 📝 Formato das Requisições
+
+### Users Service (roteado pelo Gateway)
+- **Parâmetros**: Sempre via **HTTP Headers**
+- **Exemplo**: `-H 'name: João' -H 'email: joao@example.com' -H 'password: senha123'`
+- **❌ NÃO use**: JSON body (`-d '{...}'`)
+
+### Gastos Service (roteado pelo Gateway)
+- **Parâmetros de dados**: Via **Query Params** (`?amount=100&operation=D&tag=Alimentação&date=2025-11-28`)
+- **Autenticação**: Via Header `Authorization: Bearer <TOKEN>`
+- **❌ NÃO use**: JSON body para os parâmetros de negócio
+
+### Respostas
+- O campo **password** nunca é retornado (protegido com `@JsonIgnore`)
+- Todas as rotas de Gastos requerem autenticação JWT
+- Token JWT expira em **1 hora** (3600 segundos)
 
 ## 📊 Observabilidade
 
