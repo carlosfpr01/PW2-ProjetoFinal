@@ -1,0 +1,140 @@
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pw2
+      MYSQL_USER: pw2
+      MYSQL_PASSWORD: pw2
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  users:
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /workspace
+    command: ["mvn", "quarkus:dev", "-Dquarkus.http.host=0.0.0.0"]
+    volumes:
+      - ./users:/workspace
+      - maven-cache:/root/.m2
+    environment:
+      QUARKUS_DATASOURCE_REACTIVE_URL: mysql://mysql:3306/pw2
+      QUARKUS_DATASOURCE_USERNAME: pw2
+      QUARKUS_DATASOURCE_PASSWORD: pw2
+      QUARKUS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
+      QUARKUS_LOG_HANDLER_GELF_HOST: graylog
+    ports:
+      - "8082:8082"
+      - "8443:8443"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      graylog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8082'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+
+  gastos:
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /workspace
+    command: ["mvn", "quarkus:dev", "-Dquarkus.http.host=0.0.0.0"]
+    volumes:
+      - ./gastos:/workspace
+      - maven-cache:/root/.m2
+    environment:
+      QUARKUS_DATASOURCE_REACTIVE_URL: mysql://mysql:3306/pw2
+      QUARKUS_DATASOURCE_USERNAME: pw2
+      QUARKUS_DATASOURCE_PASSWORD: pw2
+      QUARKUS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
+    ports:
+      - "8081:8081"
+      - "8444:8444"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8081'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+
+  gateway:
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /workspace
+    command: ["mvn", "quarkus:dev", "-Dquarkus.http.host=0.0.0.0"]
+    volumes:
+      - ./gateway:/workspace
+      - maven-cache:/root/.m2
+    environment:
+      QUARKUS_REST_CLIENT_USERS_API_URL: http://users:8082
+      QUARKUS_REST_CLIENT_GASTOS_API_URL: http://gastos:8081
+      QUARKUS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
+      QUARKUS_LOG_HANDLER_GELF_HOST: graylog
+      QUARKUS_HTTP_SSL_PORT: "-1"
+    ports:
+      - "8080:8080"
+    depends_on:
+      users:
+        condition: service_healthy
+      gastos:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      graylog:
+        condition: service_started
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+
+  mongodb:
+    image: mongo:7.0
+    volumes:
+      - mongodb-data:/data/db
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    environment:
+      discovery.type: single-node
+      plugins.security.disabled: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+
+  graylog:
+    image: graylog/graylog:6.2
+    environment:
+      GRAYLOG_PASSWORD_SECRET: pw2-projeto-final-local-graylog-secret-6d4f2a8c0e1b3d5f7a9c2e4b6d8f0a1c
+      GRAYLOG_ROOT_PASSWORD_SHA2: 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      GRAYLOG_HTTP_EXTERNAL_URI: http://localhost:9000/
+      GRAYLOG_MONGODB_URI: mongodb://mongodb:27017/graylog
+      GRAYLOG_ELASTICSEARCH_HOSTS: http://opensearch:9200
+    ports:
+      - "9000:9000"
+      - "12201:12201/udp"
+    depends_on:
+      - mongodb
+      - opensearch
+
+volumes:
+  mysql-data:
+  maven-cache:
+  mongodb-data:
+  opensearch-data:

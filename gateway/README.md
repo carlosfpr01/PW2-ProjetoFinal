@@ -31,42 +31,12 @@ Este é o API Gateway que orquestra os microserviços de **Users** e **Gastos**.
 
 ## 🚀 Como executar
 
-### Desenvolvimento (local)
-
-1. **Inicie os serviços dependentes:**
 ```bash
-# Inicie o MySQL
-docker run -d --name mysql-db \
-  -e MYSQL_ROOT_PASSWORD=root \
-  -e MYSQL_DATABASE=pw2 \
-  -e MYSQL_USER=pw2 \
-  -e MYSQL_PASSWORD=pw2 \
-  -p 3306:3306 \
-  mysql:8.0
-
-# Inicie o serviço de Users (na pasta users)
-cd ../users
-./mvnw quarkus:dev -Dquarkus.http.port=8082
-
-# Inicie o serviço de Gastos (na pasta gastos)
-cd ../gastos
-./mvnw quarkus:dev -Dquarkus.http.port=8081
-
-# Inicie o Gateway (na pasta gateway)
-cd ../gateway
-./mvnw quarkus:dev
+# Na raiz do projeto; inicia dependências, serviços e gateway
+./start-services.sh
 ```
 
-2. **O Gateway estará disponível em:** `http://localhost:8080`
-
-### Produção (Docker Compose)
-
-```bash
-# Na raiz do projeto
-docker-compose up --build
-```
-
-Isso iniciará:
+O Docker Compose aguarda os health checks de Users e Gastos antes de iniciar o gateway. Isso inicia:
 - MySQL (porta 3306)
 - Users Service (porta 8082)
 - Gastos Service (porta 8081)

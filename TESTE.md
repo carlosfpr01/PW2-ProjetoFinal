@@ -6,10 +6,7 @@
 # Na raiz do projeto
 cd /workspaces/pw2-2025_2
 
-# Dar permissão ao script
-chmod +x start-services.sh
-
-# Executar
+# Inicia todos os serviços com Docker Compose
 ./start-services.sh
 ```
 

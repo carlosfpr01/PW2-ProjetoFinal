@@ -38,26 +38,24 @@ Sistema de microserviços para gerenciamento de usuários e controle de gastos.
 ### Opção 1: Docker Compose (Recomendado)
 
 ```bash
-# Inicia todos os serviços
-docker-compose up --build
+# No Linux, configure o limite necessário pelo OpenSearch
+sudo sysctl -w vm.max_map_count=262144
+
+# Inicia todos os serviços, bancos de dados e ferramentas de observabilidade
+./start-services.sh
 
 # Acesse:
 # - API Gateway: http://localhost:8080
+# - Users Service: http://localhost:8082
+# - Gastos Service: http://localhost:8081
 # - Jaeger UI: http://localhost:16686
 # - Graylog: http://localhost:9000
+#   usuário: admin | senha: admin (ambiente local)
 ```
 
-### Opção 2: Desenvolvimento Local
+Para encerrar, execute `docker compose down`. Os dados dos bancos permanecem nos volumes; para apagá-los também, use `docker compose down -v`.
 
-```bash
-# Dê permissão ao script
-chmod +x start-services.sh
-
-# Execute o script
-./start-services.sh
-```
-
-Ou manualmente:
+### Opção 2: Desenvolvimento Local (sem Compose)
 
 ```bash
 # Terminal 1 - MySQL
@@ -147,7 +145,7 @@ curl http://localhost:8080/health/ready
 ├── users/            # Serviço de usuários (porta 8082)
 ├── gastos/           # Serviço de gastos (porta 8081)
 ├── docker-compose.yml
-└── start-services.sh
+└── start-services.sh # Inicia toda a stack com Docker Compose
 ```
 
 ### Tecnologias
@@ -212,7 +210,7 @@ cd users && ./mvnw package && cd ..
 cd gastos && ./mvnw package && cd ..
 
 # Subir tudo
-docker-compose up --build
+./start-services.sh
 ```
 
 ### Limpar ambiente
