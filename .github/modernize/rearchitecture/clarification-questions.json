@@ -1,0 +1,299 @@
+{
+  "schema": "clarification-questions/v1",
+  "generated_at": "2026-11-25T02:41:22Z",
+  "user_input": "Execute the already-generated modernization plan at `.github/modernize/hexagonal-java-standardization/plan.md` and `.github/modernize/hexagonal-java-standardization/.metadata/tasks.json` for workspace `/home/cfrpires/Documentos/DEV/PW2-ProjetoFinal`. User authorizes implementation. Apply pragmatic hexagonal architecture to users/gastos/gateway, normalize Java packages/directories, standardize Java toolchain/runtime configs to latest stable compatible release (verify; prefer Java 25 only if supported), preserve behavior, update relevant docs, and run targeted validation. Avoid unrelated CVE remediation unless directly required by plan. Report changed files, builds/tests, manual user steps. Do not assume Java 25 is supported. Classification: brownfield rewrite, backend Java/Quarkus microservices, target Java compatibility-gated latest stable release, no frontend, no unresolved scenario decisions. Project facts: 1136 LOC Java, 3 Maven modules/users/gastos/gateway, source package roots dev.ifrs/run.gastos/br.com.gateway, Quarkus 3.29.4, Java 21, MySQL 8.0. Produce clarification.md at the requested base path; return READY or NEEDS_INPUT/BLOCKED.",
+  "title": "Quarkus Hexagonal Architecture Standardization",
+  "assessment_snapshot": {
+    "intro": "The project scan describes a Java/Quarkus backend rewrite with these findings:",
+    "bullets": [
+      "1136 Java LOC across three Maven microservices: users, gastos, and gateway",
+      "Detected framework/runtime: Quarkus 3.29.4 and Java 21; target Java release must be compatibility-verified",
+      "MySQL 8.0 is the database; existing package roots differ across services (dev.ifrs, run.gastos, br.com.gateway)",
+      "No frontend is in scope; the stated goal is pragmatic hexagonal architecture, package normalization, behavior preservation, documentation updates, and targeted validation"
+    ]
+  },
+  "proposed_outcome": "Execute the approved modernization plan in the existing workspace for users, gastos, and gateway; use pragmatic hexagonal boundaries, normalize Java packages and directories, select only a verified compatible stable Java release (Java 25 only if supported), preserve existing behavior and API/data expectations, update relevant documentation, run targeted validation, and avoid unrelated CVE remediation.",
+  "scope": [
+    "backend",
+    "generic"
+  ],
+  "status": "awaiting_answers",
+  "questions": [
+    {
+      "id": "B1",
+      "kit": "backend",
+      "field": "target.framework",
+      "title": "Target backend framework",
+      "question": "Should the rewritten services retain Quarkus 3.29.4, or should the plan target a different backend framework and version?",
+      "importance": "required",
+      "impact": 5,
+      "recommended": "Quarkus 3.29.4 (retain existing framework)",
+      "default": null,
+      "prefilled": true,
+      "prefilled_value": "Quarkus 3.29.4 (retain existing framework)",
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "Quarkus 3.29.4 (retain existing framework)",
+          "label": "Quarkus 3.29.4 (retain existing framework)"
+        }
+      ],
+      "allow_other": true,
+      "type": "single_select"
+    },
+    {
+      "id": "B2",
+      "kit": "backend",
+      "field": "api.contract_preservation",
+      "title": "API contract policy",
+      "question": "What external API compatibility policy should the rewrite follow (endpoints, payloads, and status codes)?",
+      "importance": "required",
+      "impact": 5,
+      "recommended": "must preserve",
+      "default": "must preserve",
+      "prefilled": true,
+      "prefilled_value": "must preserve",
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "must preserve",
+          "label": "Must preserve existing API contracts"
+        },
+        {
+          "value": "can break with versioning",
+          "label": "Breaking changes are allowed with API versioning"
+        },
+        {
+          "value": "can break",
+          "label": "Breaking API changes are allowed without compatibility requirements"
+        },
+        {
+          "value": "partial: specify endpoints",
+          "label": "Preserve only specified endpoints/contracts"
+        }
+      ],
+      "allow_other": true,
+      "type": "single_select"
+    },
+    {
+      "id": "B3",
+      "kit": "backend",
+      "field": "data.migration_strategy",
+      "title": "Database migration approach",
+      "question": "Should this work alter or migrate the MySQL schema/data, or leave persistence untouched?",
+      "importance": "required",
+      "impact": 5,
+      "recommended": "TBD / assess in research phase",
+      "default": "TBD / assess in research phase",
+      "prefilled": false,
+      "prefilled_value": null,
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "in-place",
+          "label": "Keep the existing schema/database and make any changes in place"
+        },
+        {
+          "value": "dual-write",
+          "label": "Introduce a new schema alongside the existing one and synchronize during transition"
+        },
+        {
+          "value": "new schema",
+          "label": "Create a new schema and migrate data from the existing database"
+        },
+        {
+          "value": "no migration",
+          "label": "Leave the database and schema untouched"
+        },
+        {
+          "value": "TBD / assess in research phase",
+          "label": "Defer the decision to research / codebase assessment"
+        }
+      ],
+      "allow_other": true,
+      "type": "single_select"
+    },
+    {
+      "id": "B4",
+      "kit": "backend",
+      "field": "auth.framework",
+      "title": "Authentication and authorization",
+      "question": "What authentication and authorization framework or policy should be retained or adopted?",
+      "importance": "recommended",
+      "impact": 3,
+      "recommended": "preserve existing auth mechanism; detect from codebase",
+      "default": "preserve existing auth mechanism; detect from codebase",
+      "prefilled": false,
+      "prefilled_value": null,
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "preserve existing auth mechanism; detect from codebase",
+          "label": "Preserve the existing mechanism and detect it from the codebase"
+        },
+        {
+          "value": "Keycloak",
+          "label": "Keycloak"
+        },
+        {
+          "value": "Other",
+          "label": "Other framework or policy (specify)"
+        }
+      ],
+      "allow_other": true,
+      "type": "single_select"
+    },
+    {
+      "id": "B5",
+      "kit": "backend",
+      "field": "nfr.sla",
+      "title": "Service-level targets",
+      "question": "What service-level targets should validation preserve (latency, throughput, availability)?",
+      "importance": "recommended",
+      "impact": 3,
+      "recommended": "match current production baseline; no regression",
+      "default": "match current production baseline; no regression",
+      "prefilled": false,
+      "prefilled_value": null,
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "match current production baseline; no regression",
+          "label": "Match the current production baseline; no regression"
+        }
+      ],
+      "allow_other": true,
+      "type": "single_select"
+    },
+    {
+      "id": "G1",
+      "kit": "generic",
+      "field": "success.definition",
+      "title": "Definition of done",
+      "question": "What outcome defines success for this rewrite?",
+      "importance": "required",
+      "impact": 5,
+      "recommended": null,
+      "default": "feature parity with the current system; all existing user-facing behaviors preserved",
+      "prefilled": true,
+      "prefilled_value": "Pragmatic hexagonal architecture and normalized Java packages/directories across users, gastos, and gateway; compatible stable Java toolchain; existing behavior preserved; relevant docs updated; targeted validation passes.",
+      "answer": null,
+      "depends_on": null,
+      "type": "text"
+    },
+    {
+      "id": "G2",
+      "kit": "generic",
+      "field": "out_of_scope",
+      "title": "Out-of-scope boundaries",
+      "question": "Which areas must remain out of scope?",
+      "importance": "recommended",
+      "impact": 3,
+      "recommended": "No unrelated CVE remediation",
+      "default": "no explicit exclusions; agent will infer from project structure",
+      "prefilled": true,
+      "prefilled_value": "No unrelated CVE remediation",
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "No unrelated CVE remediation",
+          "label": "Avoid unrelated CVE remediation"
+        },
+        {
+          "value": "Do not modify services outside users/gastos/gateway",
+          "label": "Do not modify services outside users/gastos/gateway"
+        },
+        {
+          "value": "No explicit exclusions; infer from project structure",
+          "label": "No other explicit exclusions; infer from project structure"
+        }
+      ],
+      "allow_other": true,
+      "type": "multi_select"
+    },
+    {
+      "id": "G3",
+      "kit": "generic",
+      "field": "existing_tests.posture",
+      "title": "Existing test suite policy",
+      "question": "What policy should apply to existing tests and targeted validation?",
+      "importance": "recommended",
+      "impact": 4,
+      "recommended": "must pass",
+      "default": "must pass",
+      "prefilled": true,
+      "prefilled_value": "partial: targeted validation for users/gastos/gateway",
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "must pass",
+          "label": "All existing tests must pass"
+        },
+        {
+          "value": "can rewrite",
+          "label": "Existing tests may be replaced with equivalent coverage"
+        },
+        {
+          "value": "ignore",
+          "label": "Ignore existing tests and write new tests"
+        },
+        {
+          "value": "partial: targeted validation for users/gastos/gateway",
+          "label": "Run targeted validation for users/gastos/gateway"
+        }
+      ],
+      "allow_other": true,
+      "type": "single_select"
+    },
+    {
+      "id": "G4",
+      "kit": "generic",
+      "field": "target.output_location",
+      "title": "Rewrite output location",
+      "question": "Where should rewritten files be placed?",
+      "importance": "required",
+      "impact": 4,
+      "recommended": "in-place",
+      "default": "new sibling directory: PW2-ProjetoFinal-new",
+      "prefilled": true,
+      "prefilled_value": "in-place",
+      "answer": null,
+      "depends_on": null,
+      "options": [
+        {
+          "value": "in-place",
+          "label": "In place in /home/cfrpires/Documentos/DEV/PW2-ProjetoFinal"
+        },
+        {
+          "value": "PW2-ProjetoFinal-new",
+          "label": "New sibling directory PW2-ProjetoFinal-new"
+        }
+      ],
+      "allow_other": true,
+      "type": "single_select"
+    },
+    {
+      "id": "G5",
+      "kit": "generic",
+      "field": "constraints.additional",
+      "title": "Additional constraints",
+      "question": "List any additional requirements, exclusions, dependencies, compliance rules, or operational constraints not already captured above.",
+      "importance": "optional",
+      "impact": 2,
+      "recommended": null,
+      "default": "None beyond the decisions listed in this specification.",
+      "prefilled": true,
+      "prefilled_value": "None beyond the decisions listed in this specification.",
+      "answer": null,
+      "depends_on": null,
+      "type": "text"
+    }
+  ]
+}

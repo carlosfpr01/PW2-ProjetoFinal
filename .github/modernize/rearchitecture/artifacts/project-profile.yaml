@@ -1,0 +1,42 @@
+project:
+  scope_path: "."
+  loc: 1136
+  languages: [java]
+  git: true
+  structure:
+    users: "Java 21/Quarkus service"
+    gastos: "Java 21/Quarkus service"
+    gateway: "Java 21/Quarkus service"
+  notes: "Three independent Java/Quarkus microservices; modernization plan is pre-generated."
+
+assessment:
+  change_type: rewrite
+  rationale: |
+    The request combines a pragmatic architecture migration with Java/toolchain standardization across three existing Quarkus services.
+  transformations:
+    - fromStack: "Java 21 / Quarkus"
+      fromStackVersion: "21 / 3.29.4"
+      toStack: "Latest stable compatible Java / Quarkus"
+      toStackVersion: "compatibility-gated; Java 25 preferred only if verified"
+  grouping_needed: false
+  deep_planning: undecided
+
+progress_sync:
+  run_id: "26a62832-f9e4-452d-814a-68f23d387bfb"
+  grouping_mode: "none"
+  execution_mode: "all-atonce"
+  plan_start_time: "2026-11-25T02:40:25Z"
+  plan_completed_time: ""
+  execution_start_time: ""
+  execution_completed_time: ""
+  validation_start_time: ""
+  validation_completed_time: ""
+  total_phases: 0
+  completed_phases: 0
+  total_modules: 3
+  completed_modules: 0
+  total_tasks: 0
+  completed_tasks: 0
+  total_commits: 0
+  build_verified: false
+  test_verified: false

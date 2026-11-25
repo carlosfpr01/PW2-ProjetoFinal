@@ -1,0 +1,56 @@
+{
+  "$schema": "file:///home/cfrpires/.config/Code/agentPlugins/vscode-synced-customization-agent-host-copilotcli-262983010/413346551/skills/create-modernization-plan/tasks-schema.json",
+  "description": "Focused tasks for hexagonal architecture, Java standardization, and dependency security across the existing users, gastos, and gateway services.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-standardize-java-toolchain-runtime",
+      "description": "Standardize the Java toolchain and runtime across all three services.",
+      "reason": "The services currently set Java 21 independently and Docker Compose uses Java 21 Maven images; one evidence-based target avoids drift between build and runtime.",
+      "requirements": "Inspect each service's Quarkus BOM/plugin version, Maven wrapper and compiler configuration, dependencies, all runtime Dockerfiles/images, Docker Compose, and relevant documentation. Verify Java 25 compatibility against these actual versions before selecting it. If Java 25 cannot be verified as compatible without out-of-scope framework changes, retain or select the latest stable Java release demonstrated to work with the existing Quarkus/tooling stack. Apply one consistent Java target to all three POMs, Maven/toolchain settings where present, runtime/container images, compose configuration, and directly relevant documentation. Do not change service boundaries, API behavior, or upgrade Quarkus or unrelated dependencies merely to assume Java 25 compatibility. Record the compatibility evidence and final Java target.",
+      "dependencies": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-refactor-hexagonal-architecture-and-packages",
+      "description": "Refactor the services toward pragmatic hexagonal architecture and normalize package layouts.",
+      "reason": "The current package roots and Maven artifact metadata differ across services, making ownership and code organization inconsistent.",
+      "requirements": "After inspecting source declarations, tests, configuration, build files, and project documentation, define an evidence-based and consistent package/artifact naming convention for users, gastos, and gateway. Specifically account for the observed roots `dev.ifrs`, `run.gastos`, and `br.com.gateway`, and metadata values `org.acme:code-with-quarkus` and `br.com:api-gateway`; do not infer a target mapping from the IDE's displayed roots alone. Move/rename packages and directories to match the chosen convention. Refactor each service into pragmatic ports-and-adapters boundaries so domain/application logic does not depend on transport or persistence adapters, keeping abstractions proportional to existing behavior. Preserve all three service boundaries and existing REST contracts, JWT behavior, database behavior, service-to-service communication, ports, and observability. Update directly affected tests, imports, Maven metadata, Docker/build references, Compose configuration, and READMEs. Add or adjust focused tests for the changed boundaries and package moves, then run targeted Maven builds and tests for all three services and verify the existing endpoint/compose configuration remains coherent.",
+      "dependencies": [
+        "001-standardize-java-toolchain-runtime"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "003-remediate-dependency-cves",
+      "description": "Scan and remediate known vulnerabilities in the services' dependencies.",
+      "reason": "Complete the required dependency security check after the shared Java baseline and code changes are established.",
+      "requirements": "Scan dependencies for all three services after the Java and architecture changes. Upgrade vulnerable dependencies to the minimum patched versions that remain compatible with the selected Java and Quarkus versions. For any required major-version change, document the affected dependency, current and upgraded versions, and breaking-change risk. Rebuild and rerun the targeted tests for all services after remediation. Keep the work limited to dependency CVEs; do not broaden it into an unrelated security audit.",
+      "dependencies": [
+        "002-refactor-hexagonal-architecture-and-packages"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "hexagonal-java-standardization",
+    "projectName": "PW2-ProjetoFinal",
+    "language": "java",
+    "createdAt": "2026-11-25T02:32:10Z",
+    "version": "1.0"
+  }
+}

@@ -131,9 +131,18 @@ As configurações estão em `src/main/resources/application.properties`:
 - OpenTelemetry
 - Logging
 
+## 🧱 Arquitetura
+
+- `adapter/in/rest`: endpoints HTTP públicos
+- `application/port/in`: operações oferecidas pelo gateway
+- `application/port/out`: contratos para os serviços remotos
+- `application/service`: orquestração do gateway
+- `adapter/out/restclient`: clientes e adaptadores HTTP
+
 ## 🛠️ Tecnologias
 
 - **Quarkus 3.29.4** - Framework Java reativo
+- **Java 25 (LTS)** - Versão usada na compilação e no container
 - **REST Client Reactive** - Comunicação entre microserviços
 - **SmallRye JWT** - Validação de tokens
 - **OpenTelemetry** - Tracing distribuído

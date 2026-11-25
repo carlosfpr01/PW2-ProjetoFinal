@@ -18,13 +18,14 @@ services:
       retries: 20
 
   users:
-    image: maven:3.9-eclipse-temurin-21
+    image: maven:3.9-eclipse-temurin-25
     working_dir: /workspace
     command: ["mvn", "quarkus:dev", "-Dquarkus.http.host=0.0.0.0"]
     volumes:
       - ./users:/workspace
       - maven-cache:/root/.m2
     environment:
+      JAVA_TOOL_OPTIONS: --add-opens=java.base/java.lang=ALL-UNNAMED
       QUARKUS_DATASOURCE_REACTIVE_URL: mysql://mysql:3306/pw2
       QUARKUS_DATASOURCE_USERNAME: pw2
       QUARKUS_DATASOURCE_PASSWORD: pw2
@@ -46,13 +47,14 @@ services:
       start_period: 90s
 
   gastos:
-    image: maven:3.9-eclipse-temurin-21
+    image: maven:3.9-eclipse-temurin-25
     working_dir: /workspace
     command: ["mvn", "quarkus:dev", "-Dquarkus.http.host=0.0.0.0"]
     volumes:
       - ./gastos:/workspace
       - maven-cache:/root/.m2
     environment:
+      JAVA_TOOL_OPTIONS: --add-opens=java.base/java.lang=ALL-UNNAMED
       QUARKUS_DATASOURCE_REACTIVE_URL: mysql://mysql:3306/pw2
       QUARKUS_DATASOURCE_USERNAME: pw2
       QUARKUS_DATASOURCE_PASSWORD: pw2
@@ -73,13 +75,14 @@ services:
       start_period: 90s
 
   gateway:
-    image: maven:3.9-eclipse-temurin-21
+    image: maven:3.9-eclipse-temurin-25
     working_dir: /workspace
     command: ["mvn", "quarkus:dev", "-Dquarkus.http.host=0.0.0.0"]
     volumes:
       - ./gateway:/workspace
       - maven-cache:/root/.m2
     environment:
+      JAVA_TOOL_OPTIONS: --add-opens=java.base/java.lang=ALL-UNNAMED
       QUARKUS_REST_CLIENT_USERS_API_URL: http://users:8082
       QUARKUS_REST_CLIENT_GASTOS_API_URL: http://gastos:8081
       QUARKUS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4317
