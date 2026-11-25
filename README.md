@@ -4,6 +4,19 @@ Sistema de microserviços para gerenciamento de usuários e controle de gastos.
 
 ## 🏗️ Arquitetura
 
+Cada serviço segue uma arquitetura hexagonal independente:
+
+```
+adapter/in       -> REST, endpoints expostos
+application      -> casos de uso e portas
+domain           -> modelos e regras sem dependência de Quarkus/Panache
+adapter/out      -> persistência, segurança e clientes HTTP externos
+```
+
+`users` e `gastos` mantêm o domínio separado das entidades Panache e do transporte
+HTTP. O `gateway` mantém seus endpoints e clientes REST como adaptadores em lados
+opostos dos casos de uso. Os serviços continuam sendo aplicações Maven separadas.
+
 ```
                     ┌─────────────────┐
                     │   API Gateway   │
@@ -62,13 +75,13 @@ Para encerrar, execute `docker compose down`. Os dados dos bancos permanecem nos
 docker run -d --name mysql-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=pw2 -e MYSQL_USER=pw2 -e MYSQL_PASSWORD=pw2 -p 3306:3306 mysql:8.0
 
 # Terminal 2 - Users Service
-cd users && ./mvnw quarkus:dev -Dquarkus.http.port=8082
+cd users && JAVA_TOOL_OPTIONS="--add-opens=java.base/java.lang=ALL-UNNAMED" ./mvnw quarkus:dev -Dquarkus.http.port=8082
 
 # Terminal 3 - Gastos Service
-cd gastos && ./mvnw quarkus:dev -Dquarkus.http.port=8081
+cd gastos && JAVA_TOOL_OPTIONS="--add-opens=java.base/java.lang=ALL-UNNAMED" ./mvnw quarkus:dev -Dquarkus.http.port=8081
 
 # Terminal 4 - API Gateway
-cd gateway && ./mvnw quarkus:dev
+cd gateway && JAVA_TOOL_OPTIONS="--add-opens=java.base/java.lang=ALL-UNNAMED" ./mvnw quarkus:dev
 ```
 
 ## 📡 Endpoints
@@ -141,9 +154,18 @@ curl http://localhost:8080/health/ready
 
 ```
 .
-├── gateway/          # API Gateway (porta 8080)
-├── users/            # Serviço de usuários (porta 8082)
-├── gastos/           # Serviço de gastos (porta 8081)
+├── gateway/src/main/java/br/com/ifrs/gateway/
+│   ├── adapter/in/rest/
+│   ├── adapter/out/restclient/
+│   └── application/{port,service}/
+├── users/src/main/java/br/com/ifrs/users/
+│   ├── adapter/{in/rest,out/{persistence,security}}/
+│   ├── application/{port,service}/
+│   └── domain/model/
+├── gastos/src/main/java/br/com/ifrs/gastos/
+│   ├── adapter/{in/rest,out/persistence}/
+│   ├── application/{port,service}/
+│   └── domain/model/
 ├── docker-compose.yml
 └── start-services.sh # Inicia toda a stack com Docker Compose
 ```
@@ -151,7 +173,7 @@ curl http://localhost:8080/health/ready
 ### Tecnologias
 
 - **Framework**: Quarkus 3.29.4
-- **Java**: 21
+- **Java**: 25 (LTS), padronizado em compilação e containers
 - **Banco**: MySQL 8.0
 - **Comunicação**: REST Client Reactive
 - **Segurança**: SmallRye JWT
