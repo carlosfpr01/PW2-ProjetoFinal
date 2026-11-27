@@ -11,6 +11,7 @@ import io.quarkus.test.junit.QuarkusTest;
 @QuarkusTest
 class GatewayApiComponentTest {
 
+    // Verifica que o endpoint de saúde informa que o Gateway está ativo.
     @Test
     void healthEndpointReportsGatewayUp() {
         given()
@@ -21,6 +22,7 @@ class GatewayApiComponentTest {
             .body(containsString("\"service\":\"API Gateway\""));
     }
 
+    // Verifica que uma chamada anônima ao endpoint protegido é rejeitada.
     @Test
     void protectedExpenseEndpointRejectsAnonymousRequest() {
         given()

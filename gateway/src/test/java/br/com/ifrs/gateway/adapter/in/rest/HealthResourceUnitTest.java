@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 class HealthResourceUnitTest {
 
+    // Verifica o conteúdo de saúde retornado pelo Gateway.
     @Test
     void returnsGatewayHealthPayload() {
         assertEquals(
