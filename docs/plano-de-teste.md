@@ -185,6 +185,9 @@ Subi o projeto para o git sem a pasta de target de cada projeto para não poluir
 ### Gateway
 ![alt text](image-2.png)
 
+## Teste de sistema
+### Playwright
+![alt text](image-3.png)
 
 # USO de LLM's
 Foi utilizado ferramentas de LLM's nas seguintes atividades:
